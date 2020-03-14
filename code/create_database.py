@@ -1,5 +1,13 @@
 import psycopg2
-from config import config
+import json
+
+
+def load_configs():
+    # TODO: set correct config file path
+    config_file = "../config/config.json"
+    with open(config_file, "r+") as config:
+        data = json.load(config)
+    return data
  
 def create_tables():
     """ create tables in the PostgreSQL database"""
@@ -25,31 +33,33 @@ def create_tables():
         """,
         """ CREATE TABLE users (
         user_id SERIAL PRIMARY KEY,
-        part_name VARCHAR(255) NOT NULL
+        user_email VARCHAR(255) NOT NULL,
+        user_password VARCHAR(255) NOT NULL,
+        user_city VARCHAR(255) NOT NULL,
+        user_state VARCHAR(255) NOT NULL,
+        user_country VARCHAR(255) NOT NULL,
+        user_zip VARCHAR9(255) NOT NULL,
+        user_date_created DATETIME NOT NULL
+        user_photo_html VARCHAR(255) NOT NULL,
         )
         """,
         """ CREATE TABLE trees_history (
-        tree_id INTEGER PRIMARY KEY,
-        file_extension VARCHAR(5) NOT NULL,
-        drawing_data BYTEA NOT NULL,
-        FOREIGN KEY (tree_id)
-        REFERENCES parts (part_id)
+        tree_id SERIAL PRIMARY KEY,
+        user_id SERIAL PRIMARY KEY,
+        tree_history_action DATETIME NOT NULL, 
+        tree_history_date DATETIME NOT NULL, 
+        FOREIGN KEY (tree_id, user_id)
         ON UPDATE CASCADE ON DELETE CASCADE
         )
         """)
     conn = None
     try:
-        # read the connection parameters
-        params = config()
-        # connect to the PostgreSQL server
+        params = load_configs()
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
-        # create table one by one
         for command in commands:
             cur.execute(command)
-        # close communication with the PostgreSQL database server
         cur.close()
-        # commit the changes
         conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
