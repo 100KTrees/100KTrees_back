@@ -54,9 +54,9 @@ def create_tables():
         SQL - tables created in the database
     """
     commands = (
-        """DROP TABLE IF EXISTS trees""",
-        """DROP TABLE IF EXISTS users""",
-        """DROP TABLE IF EXISTS trees_history""",
+        "DROP TABLE IF EXISTS trees",
+        "DROP TABLE IF EXISTS users",
+        "DROP TABLE IF EXISTS trees_history",
         """CREATE TABLE trees (
         tree_id SERIAL NOT NULL,
         tree_status BOOLEAN NOT NULL,
@@ -88,6 +88,12 @@ def create_tables():
         user_date_created TIMESTAMP default current_timestamp,
         user_photo_html VARCHAR(255) NOT NULL,
         PRIMARY KEY (user_id)
+        )
+        """,
+        """ CREATE TABLE users_log (
+        user_id SERIAL NOT NULL,
+        user_login_time TIMESTAMP NOT NULL,
+        user_logout_time TIMESTAMP,
         )
         """,
         """ CREATE TABLE trees_history (

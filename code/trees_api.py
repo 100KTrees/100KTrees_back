@@ -4,6 +4,62 @@ app = Flask(__name__)
 #GET is from backend to frontend
 #POST is from frontend to backend
 
+def load_configs():
+    """
+    load_configs: load the configs json
+    inputs:
+        None
+    outputs:
+        data - config json
+    """
+
+    config_file = "../config/config.json"
+    with open(config_file, "r+") as config:
+        data = json.load(config)
+    return data
+
+def get_conn():
+    """
+    get_conn: get the connection from postgres
+    inputs: 
+        None
+    outputs:
+        conn - connection object from postgres
+    """
+    params = load_configs()
+    conn = ps.connect(
+        dbname=params["dbname"], 
+        user=params["user"],
+        host = params["host"],
+        password=params["password"]
+        )
+    return conn
+
+@app.route("/user", methods=['POST', 'GET'])
+def loginUser():
+	"""
+	Get the tree information from db and return it to the post upon sucess
+	"""
+	if request.method == 'POST':
+		conn = get_conn()
+		try:
+			email = request.form['email'].lower()
+			pasword = request.form['password']
+			query = """SELECT user_email, user_password 
+						FROM users 
+						WHERE user_email = {}""".format(email)
+			user = pd.read_sql(query, conn)
+			if len(user) == 0:
+				return jsonify(authfail=True, error="email not registered as user")
+			elif user["user_password"] != password:
+				return jsonify(authfail=True, error="email/password does not match")
+			else:
+				return jsonify(authfail=False, message="Successful Login")
+		except:
+			return jsonify(isError=True, message="failure on data acquisition")
+	else:
+		return jsonify(isError=True, message="Method not post")
+
 @app.route("/postTree", methods=['POST'])
 def postTree():
 	"""
