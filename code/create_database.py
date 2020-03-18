@@ -73,6 +73,7 @@ def create_tables():
         tree_health VARCHAR(255) NOT NULL,
         tree_insects BOOLEAN NOT NULL,
         tree_broken BOOLEAN NOT NULL,
+        tree_photo VARCHAR(255) NOT NULL,
         PRIMARY KEY (tree_id)
         )
         """,
@@ -86,14 +87,16 @@ def create_tables():
         user_country VARCHAR(255) NOT NULL,
         user_zip VARCHAR(255) NOT NULL,
         user_date_created TIMESTAMP default current_timestamp,
-        user_photo_html VARCHAR(255) NOT NULL,
+        user_photo VARCHAR(255) NOT NULL,
         PRIMARY KEY (user_id)
         )
         """,
         """ CREATE TABLE users_log (
+        user_log_id SERIAL NOT NULL,
         user_id SERIAL NOT NULL,
         user_login_time TIMESTAMP NOT NULL,
         user_logout_time TIMESTAMP,
+        PRIMARY KEY (user_log_id)
         )
         """,
         """ CREATE TABLE trees_history (
