@@ -54,8 +54,10 @@ def create_tables():
         SQL - tables created in the database
     """
     commands = (
+        "DROP TABLE IF EXISTS tree_inventory",
         "DROP TABLE IF EXISTS trees",
         "DROP TABLE IF EXISTS users",
+        "DROP TABLE IF EXISTS users_log",
         "DROP TABLE IF EXISTS trees_history",
         """CREATE TABLE trees (
         tree_id SERIAL NOT NULL,
@@ -73,8 +75,40 @@ def create_tables():
         tree_health VARCHAR(255) NOT NULL,
         tree_insects BOOLEAN NOT NULL,
         tree_broken BOOLEAN NOT NULL,
-        tree_photo VARCHAR(255) NOT NULL,
+        tree_image VARCHAR(255) NOT NULL,
+        tree_plant_date TIMESTAMP NOT NULL,
         PRIMARY KEY (tree_id)
+        )
+        """,
+        """CREATE TABLE tree_inventory (
+        InventoryID SERIAL NOT NULL,
+        tree_status BOOLEAN,
+        CommonName VARCHAR(255) NOT NULL,  
+        BotanicalName VARCHAR(255) NOT NULL,
+        PlantingOpt1 TEXT,
+        PlantingOpt1Com TEXT,
+        PlantingOpt2 TEXT,
+        PlantingOpt2Com TEXT,
+        Longitude FLOAT8 NOT NULL,
+        Latitude FLOAT8 NOT NULL,
+        PlantingDistrict VARCHAR(255) NOT NULL,
+        Address VARCHAR(255) NOT NULL,
+        Street VARCHAR(255) NOT NULL,
+        SideType VARCHAR(255) NOT NULL,
+        Tree INTEGER NOT NULL,
+        tree_city VARCHAR(255),
+        tree_state VARCHAR(255),
+        tree_country VARCHAR(255),
+        tree_zip VARCHAR(255),
+        tree_water_level float8,
+        tree_health VARCHAR(255),
+        tree_insects BOOLEAN,
+        tree_broken BOOLEAN,
+        SelecTreeLink VARCHAR(255) NOT NULL,
+        DBH VARCHAR(255) NOT NULL,
+        Height VARCHAR(255),
+        Owner VARCHAR(255) NOT NULL,
+        PRIMARY KEY (InventoryID)
         )
         """,
         """ CREATE TABLE users (
@@ -87,7 +121,7 @@ def create_tables():
         user_country VARCHAR(255) NOT NULL,
         user_zip VARCHAR(255) NOT NULL,
         user_date_created TIMESTAMP default current_timestamp,
-        user_photo VARCHAR(255) NOT NULL,
+        user_image VARCHAR(255) NOT NULL,
         PRIMARY KEY (user_id)
         )
         """,
@@ -126,15 +160,27 @@ def create_tables():
 def load_sample_data():
     conn = get_conn()
     cur = conn.cursor()
-    tree_data = pd.read_excel('../data/trees_schema.xlsx', sheet_name='trees')
-    insert_cols = ['tree_status', 'tree_name', 'tree_scientific_name',
-    'tree_longitude', 'tree_latitude', 'tree_street_address', 'tree_city', 
-    'tree_state', 'tree_country', 'tree_zip', 'tree_water_level', 'tree_health',
-    'tree_insects', 'tree_broken']
-    for i, row in tree_data.iterrows():
+    #tree_data = pd.read_excel('../data/trees_schema.xlsx', sheet_name='trees')
+    #insert_cols = ['tree_status', 'tree_name', 'tree_scientific_name',
+    #'tree_longitude', 'tree_latitude', 'tree_street_address', 'tree_city', 
+    #'tree_state', 'tree_country', 'tree_zip', 'tree_water_level', 'tree_health',
+    #'tree_insects', 'tree_broken', 'tree_plant_date', 'tree_image']
+    #for i, row in tree_data.iterrows():
+    #    insert_values = tuple(row[insert_cols].values)
+    #    insert_query = """INSERT INTO {0} ({1}) VALUES {2}""".format(
+    #        'trees', ", ".join(insert_cols), insert_values
+    #    )
+    #    print(insert_query)
+    #    cur.execute(insert_query)
+    tree_inventory = pd.read_excel('../data/trees_schema.xlsx', sheet_name='tree_inventory')
+    insert_cols = ["InventoryID", "Address", "Street", "SideType", "Tree", 
+    "CommonName", "BotanicalName", "SelecTreeLink", "DBH", "Latitude", 
+    "Longitude", "Owner", "PlantingDistrict", "PlantingOpt1", "PlantingOpt1Com", 
+    "PlantingOpt2", "PlantingOpt2Com"]
+    for i, row in tree_inventory.iterrows():
         insert_values = tuple(row[insert_cols].values)
         insert_query = """INSERT INTO {0} ({1}) VALUES {2}""".format(
-            'trees', ", ".join(insert_cols), insert_values
+            'tree_inventory', ", ".join(insert_cols), insert_values
         )
         print(insert_query)
         cur.execute(insert_query)
@@ -142,7 +188,7 @@ def load_sample_data():
     user_data = pd.read_excel('../data/trees_schema.xlsx', sheet_name='users')
     insert_cols = ['user_email', 'user_name', 'user_password', 
     'user_city', 'user_state', 'user_country', 'user_zip', 
-    'user_photo_html']
+    'user_image']
     for i, row in user_data.iterrows():
         insert_values = tuple(row[insert_cols].values)
         insert_query = """INSERT INTO {0} ({1}) VALUES {2}""".format(
