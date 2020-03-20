@@ -46,6 +46,7 @@ def User():
 
 	#loginUser
 	if request.method == 'POST' and 'loginuser' in request.form:
+		#Ensure the user trying to login exists in the user DB
 		email = request.form['email'].lower()
 		pasword = request.form['encoded_password']
 		query = """SELECT user_email, user_password 
@@ -70,6 +71,7 @@ def User():
 
 	#forgotPassword
 	elif request.method == 'POST' and 'forgot_password' in request.form:
+		#Send an email to the user to reset their password
 		email = request['email'].lower()
 		query = """SELECT user_email
 					FROM users
@@ -83,11 +85,20 @@ def User():
 
 	#logout
 	elif request.method == 'POST' and 'logout' in request.form:
+		#Update the most recent login entry for a user with their logout time
 		email = request.form['email']
-		query = """SELECT user_id FROM users WHERE user_email={0}""".format(email)
+		query = """SELECT user_id 
+					FROM users 
+					WHERE user_email={0}""".format(email)
 		user_id = pd.real_sql(query, conn)
-		insert_cols = ['user_id', 'user_logout_time']
-		insert_values = (user_id, str(datetime.now()))
+		user_id = user_id['user_id'].values[0]
+		query = """SELECT user_log_id, 
+					FROM users_log 
+					WHERE user_id={0}""".format(user_id)
+		user_log_id = pd.read_sql(query, conn)
+		user_log_id = user_log_id['user_log_id'].max()
+		insert_cols = ['user_log_id', 'user_logout_time']
+		insert_values = (user_log_id, str(datetime.now()))
 		insert_query = """INSERT INTO {0} ({1}) VALUES {2}""".format(
 			'users_log', ",".join(insert_cols), insert_values
 			)
@@ -119,7 +130,7 @@ def User():
 		if len(user_id)==0:
 			return jsonify(isError=True, message="User name does not exist")
 		else:
-			query = """SELECT user_id, tree_id, tree_history_action, tree_history_date 
+			query = """SELECT user_id, InventoryID, tree_history_action, tree_history_date 
 					FROM trees_history
 					WHERE user_id={0}""".format(user_id)
 			user_tree_history = pd.read_sql(query, conn)
@@ -175,77 +186,93 @@ def User():
 		user_photo = user_profile['user_photo']
 		user_location = user_profile[['user_city', 'user_state', 'user_zip']].values
 
-		query = """SELECT tree_id, tree_history_action, tree_history_action_date
+		query = """SELECT InventoryID, tree_history_action, tree_history_action_date
 					FROM trees_history 
 					WHERE user_name = {0}""".format(user_name)
 		tree_user_history = pd.read_sql(query, conn)
-		tree_list = tree_user_history['tree_id'].unique()
+		tree_list = tree_user_history['InventoryID'].unique()
 		trees_watered_sum = len(tree_user_history[tree_user_history['tree_history_action'] == 'Watered'])
 		trees_planted_sum = len(tree_user_history[tree_user_history['tree_history_action'] == 'Planted'])
-		achievement_sum = trees_watered_sum + trees_planted_sum
+		tree_identified_sum = len(tree_user_history[tree_user_history['tree_history_action'] == 'Identified'])
+		achievement_sum = trees_watered_sum + trees_planted_sum + tree_identified_sum
 		user_tree_list = [user_photo, user_name, achievement_sum, trees_watered_sum, 
-							trees_planted_sum]
+							trees_planted_sum, tree_identified_sum]
 		return jsonify(isError=False, user_location, user_tree_list)
 
 	#invteFriend
 	elif request.method = 'GET' and 'invite_friend' in request.form:
-		
+		#Not sure of what the functionality should be for API here
+		return jsonify(isError=True, message='not implemented')
 
-@app.route("/postTree", methods=['POST'])
-def postTree():
-	"""
-	Get the tree information from db and return it to the post upon sucess
-	"""
-	try:
-		data = request.data
-		#put this data into the trees table in 100K database
+@app.route("/tree", methods=['POST', 'GET'])
+def Tree():
+	conn = get_conn()
+	cur = conn.cursor()
+	if request.method = 'POST' and 'posttree' in request.form:
+		InventoryID = request.form['InventoryID']
+		tree_status = request.form['tree_status']
+		tree_name = request.form['tree_name']
+		CommonName = request.form['CommonName']
+		BotanicalName = request.form['BotanicalName']
+		Longitude = request.form['Longitude']
+		Latitude = request.form['Latitude']
+		Address = request.form['Address']
+		Street = request.form['Street']
+		tree_city = request.form['tree_city']
+		tree_state = request.form['tree_state']
+		tree_country = request.form['tree_country']
+		tree_zip = request.form['tree_zip']
+		tree_water_level = request.form['tree_water_level']
+		tree_health = request.form['tree_health']
+		tree_insects = request.form['tree_insects']
+		tree_broken = request.form['tree_broken']
+		tree_plant_date = request.form['tree_plant_date']
+		SelecTreeLink = request.form['SelecTreeLink']
+		user_id = request.form['user_id']
+		query = "SELECT user_id FROM users WHERE user_id = {}".format(user_id)
+		users = pd.read_sql(query, conn)
+		if len(users) == 0:
+			return jsonify(isError=True, message="Login to create tree") 
 
-		return jsonify(isError=False, message="posted tree success into DB", statusCode=200)
-	except:
-		return jsonify(isError=True, message="failure")
+		insert_cols = ['InventoryID', 'tree_status', 'tree_name',
+						'CommonName', 'BotanicalName', 'Longitude',
+						'Latitude', 'Address', 'Street', 'tree_city',
+						'tree_state', 'tree_country', 'tree_zip', 
+						'tree_water_level', 'tree_health', 'tree_insects',
+						'tree_broken', 'tree_plant_date', 'SelecTreeLink'
+						]
+		insert_values = [InventoryID, tree_status, tree_name,
+						CommonName, BotanicalName, Longitude,
+						Latitude, Address, Street, tree_city,
+						tree_state, tree_country, tree_zip, 
+						tree_water_level, tree_health, tree_insects,
+						tree_broken, tree_plant_date, SelecTreeLink]
+		insert_query = """INSERT INTO {0} ({1}) VALUES {2}""".format(
+		'trees_inventory', ",".join(insert_cols), insert_values
+		)
+		cur.execute(insert_query)
 
-@app.route("/postUserCreate", methods=['POST'])
-def postUserCreate():
-	try:
-		data = request.data
-		#put this data into the user table in 100K database
+		insert_cols = ['InventoryID', 'user_id', 'tree_history_action']
+		insert_values = [InventoryID, user_id, "Identified"]
+		insert_query = """INSERT INTO {0} ({1}) VALUES {2}""".format(
+		'trees_history', ",".join(insert_cols), insert_values
+		)
+		cur.execute(insert_query)
+		cur.close()
+		conn.commit()
+		conn.close()
+		return jsonify(isError=False, message="Tree successfully posted")
+	if request.method = 'GET' and 'tree_history' in request.form:
+		InventoryID = request.form['InventoryID']
+		query = """SELECT tree_history_action, tree_history_action_date
+				FROM trees_history 
+				WHERE InventoryID = {}""".format(InventoryID)
+		tree_history = pd.read_sql(query, conn)
+		tree_history = tree_history.sort_values('tree_history_action_date')
+		tree_history = tree_history.values
+		return jsonify(isError=False, tree_history)
 
-		return jsonify(isError=False, message="posted tree success into DB", statusCode=200)
-	except:
-		return jsonify(isError=True, message="failure")
 
-@app.route("/getTree", methods=['GET'])
-def getTree():
-	try:
-		data = request.data
-		#Make query out of this data and query the trees table in 100K database
-		#return data from query as data
-
-		return jsonify(isError=False, message="Success", statusCode= 200, data=data)
-	except:
-		return jsonify(isError=True, message="failure")
-
-@app.route("/getHistoryTree", methods=['GET'])
-def getHistoryTree():
-	try:
-		data = request.data
-		#Make query out of this data and query the trees table in 100K database
-		#return the data from query as data
-
-		return jsonify(isError=False, message="Success", statusCode=200, data=data)
-	except:
-		return jsonify(isError=True, message="failure")
-
-@app.route("/getHistoryUser", methods=['GET'])
-def getHistoryUser():
-	try:
-		data = request.data
-		#Make query out of this data and query the trees table in 100K database
-		#return the data from query as data
-
-		return jsonify(isError=False, message="Success", statusCode=200, data=data)
-	except:
-		return jsonify(isError=True, message="failure")
 
 @app.route("/getMap", methods=['GET'])
 def getMap():
@@ -254,14 +281,6 @@ def getMap():
 		#Make query out of this data and query the trees table in 100K database
 		#return the data from the query as data
 
-		return jsonify(isError=False, message="Success", statusCode=200, data=data)
-	except:
-		return jsonify(isError=True, message="failure")
-
-@app.route("/getUserProfile", methods=['GET'])
-def getUserProfile():
-	try:
-		data = request.data
 		return jsonify(isError=False, message="Success", statusCode=200, data=data)
 	except:
 		return jsonify(isError=True, message="failure")
