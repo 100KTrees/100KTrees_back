@@ -63,7 +63,7 @@ def create_tables():
         TreeImageURL VARCHAR(255),
         DBH VARCHAR(255),
         Height VARCHAR(255),
-        Owner VARCHAR(255,
+        Owner VARCHAR(255),
         PRIMARY KEY (InventoryID)
         )
         """,
