@@ -343,15 +343,12 @@ def Tree():
 			return jsonify(isError=False, TreeHistory)
 
 
-@app.route("/getMap", methods=['GET'])
-def getMap():
-	try:
-		data = request.data
+@app.route("/GetMap", methods=['GET'])
+def GetMap():
 		#Make query out of this data and query the trees table in 100K database
 		#return the data from the query as data
-
-		return jsonify(isError=False, message="Success", statusCode=200, data=data)
-	except:
+	if request.method = 'GET' and 'GetMap' in request.form:
+		return jsonify(isError=False, message="Success")
 		return jsonify(isError=True, message="failure")
 
 
