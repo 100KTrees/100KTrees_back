@@ -1,11 +1,10 @@
 from flask import Flask, request, jsonify
 import psycopg2 as ps
 import datetime
+import json
 app = Flask(__name__)
 #GET is from backend to frontend
 #POST is from frontend to backend
-
-add user_latitude, user_longitude
 
 def load_configs():
     """
@@ -120,7 +119,7 @@ def User():
 		if len(User) == 0:
 			return jsonify(isError=True, message="Please Login Again")
 		else:
-			return jsonify(isError=False, User['UserEmail'].values)
+			return jsonify(isError=False, UserEmail=User['UserEmail'].values)
 
 	#GetUserHistory
 	elif request.method == 'GET' and 'GetUserHistory' in request.form:
@@ -138,10 +137,10 @@ def User():
 			UserTreeHistory = pd.read_sql(query, conn)
 			UserTreeHistory = UserTreeHistory.sort_values('TreeHistoryDate')
 			UserTreeHistory = UserTreeHistory.values
-			return jsonify(isError=False, UserTreeHistory)
+			return jsonify(isError=False, UserTreeHistory=UserTreeHistory)
 
 	#CreateUser
-	elif request.method = 'POST' and 'CreateUser' in request.form:
+	elif request.method == 'POST' and 'CreateUser' in request.form:
 		UserName = request.form['UserName'].lower()
 		UserEmail = request.form['UserEmail'].lower()
 		UserPassword = request.form['UserPassword']
@@ -176,10 +175,10 @@ def User():
 			cur.close()
 			conn.commit()
 			conn.close()
-			return jsonify(isError=False, "Account successfully created")
+			return jsonify(isError=False, message="Account successfully created")
 
 	#GetUserProfile
-	elif request.method = 'POST' and 'GetUserProfile' in request.form:
+	elif request.method == 'POST' and 'GetUserProfile' in request.form:
 		UserName = request.form['UserName'].lower()
 		query = """SELECT UserName, UserImageURL, UserCity, UserState, UserZip
 					FROM users 
@@ -199,10 +198,10 @@ def User():
 		AchievementSum = TreesWateredSum + TreesPlantedSum + TreesIdentifiedSum
 		UserTreeList = [UserImageURL, UserName, AchievementSum, TreesWateredSum, 
 						TreesPlantedSum, TreesIdentifiedSum]
-		return jsonify(isError=False, UserLocation, UserTreeList)
+		return jsonify(isError=False, UserLocation=UserLocation, UserTreeList=UserTreeList)
 
 	#InviteFriend
-	elif request.method = 'GET' and 'InviteFriend' in request.form:
+	elif request.method == 'GET' and 'InviteFriend' in request.form:
 		#Not sure of what the functionality should be for API here
 		return jsonify(isError=True, message='not implemented')
 
@@ -211,7 +210,7 @@ def Tree():
 	conn = get_conn()
 	cur = conn.cursor()
 	#CreateTree
-	if request.method = 'POST' and 'CreateTree' in request.form:
+	if request.method == 'POST' and 'CreateTree' in request.form:
 		TreeStatus = request.form['TreeStatus']
 		TreeName = request.form['TreeName']
 		CommonName = request.form['CommonName']
@@ -256,7 +255,7 @@ def Tree():
 		return jsonify(isError=False, message="Tree successfully created")
 
 	#PostTree
-	elif request.method = 'POST' and 'PostTree' in request.form:
+	elif request.method == 'POST' and 'PostTree' in request.form:
 		InventoryID = request.form['InventoryID']
 		TreeStatus = request.form['TreeStatus']
 		TreeName = request.form['TreeName']
@@ -307,7 +306,7 @@ def Tree():
 			return jsonify(isError=True, message="Tree must be created")
 
 	#GetTreeList
-	if request.method = 'GET' and 'GetTreeList' in request.form:
+	if request.method == 'GET' and 'GetTreeList' in request.form:
 		query = """SELECT DISTINCT CommonName
 				FROM trees_inventory"""
 		TreeList = pd.read_sql(query, conn)
@@ -315,10 +314,10 @@ def Tree():
 		if len(TreeList) == 0:
 			return jsonify(isError=False, message="No unique tree common names")
 		else:
-			return jsonify(isError=False, TreeList)
+			return jsonify(isError=False, TreeList=TreeList)
 
 	#GetTree
-	if request.method = 'GET' and 'GetTree' in request.form:
+	if request.method == 'GET' and 'GetTree' in request.form:
 		InventoryID = request.form['InventoryID']
 		query = """SELECT * FROM trees_inventory 
 				WHERE InventoryID = {0}""".format(InventoryID)
@@ -326,10 +325,10 @@ def Tree():
 		TreeRecord = TreeRecord.values
 		if len(TreeRecord) == 0:
 			return jsonify(isError=True, message="Tree does not exist")	
-		return jsonify(isError=False, TreeRecord)
+		return jsonify(isError=False, TreeRecord=TreeRecord)
 
 	#GetTreeHistory
-	if request.method = 'GET' and 'GetTreeHistory' in request.form:
+	if request.method == 'GET' and 'GetTreeHistory' in request.form:
 		InventoryID = request.form['InventoryID']
 		query = """SELECT tree_history_action, tree_history_action_date
 				FROM trees_history 
@@ -340,14 +339,14 @@ def Tree():
 		else:
 			TreeHistory = TreeHistory.sort_values('tree_history_action_date')
 			TreeHistory = TreeHistory.values
-			return jsonify(isError=False, TreeHistory)
+			return jsonify(isError=False, TreeHistory=TreeHistory)
 
 
 @app.route("/GetMap", methods=['GET'])
 def GetMap():
 		#Make query out of this data and query the trees table in 100K database
 		#return the data from the query as data
-	if request.method = 'GET' and 'GetMap' in request.form:
+	if request.method == 'GET' and 'GetMap' in request.form:
 		return jsonify(isError=False, message="Success")
 		return jsonify(isError=True, message="failure")
 
