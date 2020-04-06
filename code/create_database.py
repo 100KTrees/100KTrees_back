@@ -1,16 +1,18 @@
 import psycopg2 as ps
 import pandas as pd
 import json
-#Note: A preexisting database called "100KTrees" is needed outside of this script"
 
-"""after starting postgresql from command line (psql), i used the following lines 
+# Note: A preexisting database called "100KTrees" is needed outside of this script"
+
+"""after starting postgresql from command line (psql), i used the following lines
 to initialize the database as well as to create the user and the role
 for the user -- i am not sure how to do this programatically"""
-    
-#CREATE DATABASE "100KTrees";
-#CREATE USER user_name with encrypted password 'password';
-#GRANT ALL PRIVILEGES ON DATABASE "100KTrees" TO user_name;
-#ALTER USER user_name CREATEDB;
+
+# CREATE DATABASE "100KTrees";
+# CREATE USER user_name with encrypted password 'password';
+# GRANT ALL PRIVILEGES ON DATABASE "100KTrees" TO user_name;
+# ALTER USER user_name CREATEDB;
+
 
 def load_configs():
     config_file = "../config/config.json"
@@ -18,15 +20,17 @@ def load_configs():
         data = json.load(config)
     return data
 
+
 def get_conn():
     params = load_configs()
     conn = ps.connect(
-        dbname=params["dbname"], 
+        dbname=params["dbname"],
         user=params["user"],
-        host = params["host"],
-        password=params["password"]
-        )
+        host=params["host"],
+        password=params["password"],
+    )
     return conn
+
 
 def create_tables():
     commands = (
@@ -38,7 +42,7 @@ def create_tables():
         InventoryID SERIAL NOT NULL,
         TreeStatus BOOLEAN,
         TreeName VARCHAR(255),
-        CommonName VARCHAR(255),  
+        CommonName VARCHAR(255),
         BotanicalName VARCHAR(255),
         PlantingOpt1 VARCHAR(255),
         PlantingOpt1Com VARCHAR(255),
@@ -93,11 +97,12 @@ def create_tables():
         TreeHistoryID SERIAL NOT NULL,
         InventoryID INTEGER,
         UserID INTEGER,
-        TreeHistoryAction VARCHAR(255), 
+        TreeHistoryAction VARCHAR(255),
         TreeHistoryDate TIMESTAMP default current_timestamp,
         PRIMARY KEY (TreeHistoryID)
         )
-        """)
+        """,
+    )
     conn = None
     try:
         conn = get_conn()
@@ -112,19 +117,37 @@ def create_tables():
     finally:
         if conn is not None:
             conn.close()
- 
+
+
 def load_sample_data():
     conn = get_conn()
     cur = conn.cursor()
-    tree_inventory = pd.read_excel('../data/trees_schema.xlsx', sheet_name='tree_inventory')
-    insert_cols = ["InventoryID", "Address", "Street", "SideType", "Tree", 
-    "CommonName", "BotanicalName", "SelecTreeLink", "DBH", "Latitude", 
-    "Longitude", "Owner", "PlantingDistrict", "PlantingOpt1", "PlantingOpt1Com", 
-    "PlantingOpt2", "PlantingOpt2Com"]
-    for i, row in tree_inventory.iterrows():
-        insert_values = tuple(row[insert_cols].values)
+    tree_inventory = pd.read_excel(
+        "../data/trees_schema.xlsx", sheet_name="tree_inventory"
+    )
+    insert_cols = [
+        "InventoryID",
+        "Address",
+        "Street",
+        "SideType",
+        "Tree",
+        "CommonName",
+        "BotanicalName",
+        "SelecTreeLink",
+        "DBH",
+        "Latitude",
+        "Longitude",
+        "Owner",
+        "PlantingDistrict",
+        "PlantingOpt1",
+        "PlantingOpt1Com",
+        "PlantingOpt2",
+        "PlantingOpt2Com",
+    ]
+    for row in tree_inventory.iterrows():
+        insert_values = tuple(row[0][insert_cols].values)
         insert_query = """INSERT INTO {0} ({1}) VALUES {2}""".format(
-            'trees_inventory', ", ".join(insert_cols), insert_values
+            "trees_inventory", ", ".join(insert_cols), insert_values
         )
         print(insert_query)
         cur.execute(insert_query)
@@ -132,6 +155,8 @@ def load_sample_data():
     conn.commit()
     conn.close()
     return "Success"
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     create_tables()
     print(load_sample_data())
