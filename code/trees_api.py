@@ -341,14 +341,16 @@ def Tree():
 			TreeHistory = TreeHistory.values
 			return jsonify(isError=False, TreeHistory=TreeHistory)
 
-
-@app.route("/GetMap", methods=['GET'])
-def GetMap():
-		#Make query out of this data and query the trees table in 100K database
-		#return the data from the query as data
+	#Make query out of this data and query the trees table in 100K database
+	#return the data from the query as data
 	if request.method == 'GET' and 'GetMap' in request.form:
-		return jsonify(isError=False, message="Success")
-		return jsonify(isError=True, message="failure")
+		query = """SELECT * FROM trees_inventory"""
+		TreeMap = pd.read_sql(query, conn)
+		if len(TreeMap) == 0:
+			return jsonify(isError=False, message="No trees")
+		else:
+			TreeMap = TreeList.values
+			return jsonify(isError=False, TreeMap=TreeMap)
 
 
 if __name__ == '__main__':
