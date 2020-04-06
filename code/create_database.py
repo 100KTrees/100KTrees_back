@@ -2,9 +2,9 @@ import psycopg2 as ps
 import pandas as pd
 import json
 
-# Note: A preexisting database called "100KTrees" is needed outside of this script"
+# Note: A preexisting database called "100KTrees""
 
-"""after starting postgresql from command line (psql), i used the following lines
+"""after starting postgresql from command line (psql), i used the following
 to initialize the database as well as to create the user and the role
 for the user -- i am not sure how to do this programatically"""
 
