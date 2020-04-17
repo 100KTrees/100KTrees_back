@@ -34,10 +34,10 @@ def get_conn():
 
 def create_tables():
     commands = (
-        "DROP TABLE IF EXISTS tree_inventory",
         "DROP TABLE IF EXISTS users",
         "DROP TABLE IF EXISTS users_log",
         "DROP TABLE IF EXISTS trees_history",
+        "DROP TABLE IF EXISTS trees_inventory",
         """CREATE TABLE trees_inventory (
         InventoryID SERIAL NOT NULL,
         TreeStatus BOOLEAN,
@@ -64,10 +64,10 @@ def create_tables():
         TreeInsects BOOLEAN,
         TreeBroken BOOLEAN,
         SelecTreeLink VARCHAR(255),
-        TreeImageURL VARCHAR(255),
         DBH VARCHAR(255),
         Height VARCHAR(255),
         Owner VARCHAR(255),
+        PictureURL VARCHAR(255),
         PRIMARY KEY (InventoryID)
         )
         """,
@@ -122,9 +122,7 @@ def create_tables():
 def load_sample_data():
     conn = get_conn()
     cur = conn.cursor()
-    tree_inventory = pd.read_excel(
-        "../data/trees_schema.xlsx", sheet_name="tree_inventory"
-    )
+    trees_inventory = pd.read_csv("../data/input_data.csv")
     insert_cols = [
         "InventoryID",
         "Address",
@@ -143,9 +141,10 @@ def load_sample_data():
         "PlantingOpt1Com",
         "PlantingOpt2",
         "PlantingOpt2Com",
+        "PictureURL",
     ]
-    for row in tree_inventory.iterrows():
-        insert_values = tuple(row[0][insert_cols].values)
+    for row in trees_inventory.iterrows():
+        insert_values = tuple(row[1][insert_cols].values)
         insert_query = """INSERT INTO {0} ({1}) VALUES {2}""".format(
             "trees_inventory", ", ".join(insert_cols), insert_values
         )

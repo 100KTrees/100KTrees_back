@@ -5,8 +5,6 @@ import json
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-# GET is from backend to frontend
-# POST is from frontend to backend
 
 
 def load_configs():
@@ -461,44 +459,30 @@ def tree():
     # requestType = request.args.get('request')
     print("GetMap Before", "request.headers", request.headers)
     print("GetMap Before", "request.__dict__", request.__dict__)
-    print("GetMap Before", "request.values", request.values, request.args.get("requestType"))
+    print(
+        "GetMap Before",
+        "request.values",
+        request.values,
+        request.args.get("requestType"),
+    )
 
     # print("GetMap Before", "request.json", request.json)
     # print("GetMap Before", "request.get_json()", request.get_json())
     if request.method == "GET" and "GetMap" in request.args.get("requestType"):
-        # logging.info(request.form)
-        print("GetMap", request.args.get("requestType"))
-        # TODO: Figure out the right number here instead of "5"
-        # Longitude = request.form["Longitude"]
-        # Latitude = request.form["Latitude"]
-        # TODO: Figure out the right number here instead of "5"
-        # BottomLong = Longitude - 5
-        # TopLong = Longitude + 5
-        # LeftLatitude = Latitude - 5
-        # RightLatitude = Latitude + 5
-        # query = f"""SELECT * FROM trees_inventory
-        #         WHERE Latitude < {TopLong} AND
-        #         Latitude > {BottomLong} AND
-        #         Longitude < {RightLatitude} AND
-        #         Longitude > {LeftLatitude}"""
-
-        query = f"""SELECT * FROM trees_inventory"""
-
+        # TODO: Get that lat/long info from this request
+        query = """SELECT * FROM trees_inventory"""
         TreeMap = pd.read_sql(query, conn)
-        print("TreeMap", TreeMap)
-        print("TreeMap", TreeMap.values)
         if len(TreeMap) == 0:
             return jsonify(isError=False, message="No trees")
         else:
-            # TreeMap = TreeMap.values
             TreeMap = TreeMap.to_json()
             return TreeMap
-            # return jsonify(TreeMap)
     else:
-    # Return empty response body and status code.
-        return '', 400
+        # Return empty response body and status code.
+        return "", 400
     # Return empty body (Flask will default to 200 status code)
-    return ''
+    return ""
+
 
 if __name__ == "__main__":
     app.run(port=30000, debug=True)
