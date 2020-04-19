@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 
 def load_configs():
-    ConfigFile = "./config/config.json"
+    ConfigFile = "../config/config.json"
     with open(ConfigFile, "r+") as config:
         data = json.load(config)
     return data
@@ -42,9 +42,11 @@ def User():
         )
         User = pd.read_sql(query, conn)
         if len(User) == 0:
-            return jsonify(isError=True, message="email not registered as user")
+            returnable = {"isError": True, "message": "email not registered as user"}
+            return jsonify(returnable)
         elif User["UserPassword"] != UserPassword:
-            return jsonify(isError=True, message="email/password does not match")
+            returnable = {"isError": True, "message": "email/password does not match"}
+            return jsonify(returnable)
         else:
             insert_cols = ["UserID", "UserLoginTime"]
             insert_values = (request.form["UserID"], str(datetime.datetime.now()))
@@ -55,7 +57,8 @@ def User():
             cur.close()
             conn.commit()
             conn.close()
-            return jsonify(isError=False, message="Successful Login")
+            returnable = {"isError": False, "message": "Successful Login"}
+            return jsonify(returnable)
 
     # ForgotPassword
     elif request.method == "POST" and "ForgotPassword" in request.form:
@@ -71,7 +74,8 @@ def User():
             return jsonify(isError=True, message="email address not found")
         else:
             # TODO: some logic about sending an email for password reset needed here
-            return jsonify(isError=False, message="email sent to reset password")
+            returnable = {"isError": False, "message": "email sent to reset password"}
+            return jsonify(returnable)
 
     # LogoutUser
     elif request.method == "POST" and "LogoutUser" in request.form:
@@ -100,7 +104,8 @@ def User():
         cur.close()
         conn.commit()
         conn.close()
-        return jsonify(isError=False, message="Successful Logout")
+        returnable = {"isError": False, "message": "Successful Logout"}
+        return jsonify(returnable)
 
     # GetUser
     elif request.method == "GET" and "UserName" in request.form:
@@ -112,7 +117,8 @@ def User():
         )
         User = pd.read_sql(query, conn)
         if len(User) == 0:
-            return jsonify(isError=True, message="Please Login Again")
+            returnable = {"isError": True, "message": "Please Login Again"}
+            return jsonify(returnable)
         else:
             return jsonify(isError=False, UserEmail=User["UserEmail"].values)
 
@@ -136,7 +142,8 @@ def User():
             UserTreeHistory = pd.read_sql(query, conn)
             UserTreeHistory = UserTreeHistory.sort_values("TreeHistoryDate")
             UserTreeHistory = UserTreeHistory.values
-            return jsonify(isError=False, UserTreeHistory=UserTreeHistory)
+            returnable = {"isError": False, "UserTreeHistory": UserTreeHistory}
+            return jsonify(returnable)
 
     # CreateUser
     elif request.method == "POST" and "CreateUser" in request.form:
@@ -161,9 +168,11 @@ def User():
         )
         UserEmailCheck = pd.read_sql(query, conn)
         if len(UserNameCheck) > 0:
-            return jsonify(isError=True, message="Duplicate username")
+            returnable = {"isError": True, "message": "Duplicate username"}
+            return jsonify(returnable)
         elif len(UserEmailCheck) != 0:
-            return jsonify(isError=True, message="Duplicate email")
+            returnable = {"isError": True, "message": "Duplicate email"}
+            return jsonify(returnable)
         else:
             insert_cols = [
                 "UserName",
@@ -192,7 +201,8 @@ def User():
             cur.close()
             conn.commit()
             conn.close()
-            return jsonify(isError=False, message="Account successfully created")
+            returnable = {"isError": False, "message": "Account successfully created"}
+            return jsonify(returnable)
 
     # GetUserProfile
     elif request.method == "POST" and "GetUserProfile" in request.form:
@@ -232,14 +242,21 @@ def User():
             TreesIdentifiedSum,
             TreeList,
         ]
-        return jsonify(
-            isError=False, UserLocation=UserLocation, UserTreeList=UserTreeList
-        )
+        returnable = {
+            "isError": False,
+            "UserLocation": UserLocation,
+            "UserTreeList": UserTreeList,
+        }
+        return jsonify(returnable)
 
     # InviteFriend
     elif request.method == "GET" and "InviteFriend" in request.form:
         # Not sure of what the functionality should be for API here
-        return jsonify(isError=True, message="not implemented")
+        returnable = {"isError": True, "message": "not implemented"}
+        return jsonify(returnable)
+    else:
+        returnable = {"isError": False, "Message": "Welcome!"}
+        return jsonify(returnable)
 
 
 @app.route("/tree", methods=["POST", "GET"])
@@ -313,7 +330,8 @@ def tree():
         cur.close()
         conn.commit()
         conn.close()
-        return jsonify(isError=False, message="Tree successfully created")
+        returnable = {"isError": False, "message": "Tree successfully created"}
+        return jsonify(returnable)
     # ActionTree
     elif request.method == "POST" and "ActionTree" in request.form:
         InventoryID = request.form["InventoryID"]
@@ -327,7 +345,8 @@ def tree():
         cur.close()
         conn.commit()
         conn.close()
-        return jsonify(isError=False, message="Tree action successfully created")
+        returnable = {"isError": False, "message": "Tree action successfully created"}
+        return jsonify(returnable)
 
     # PostTree
     elif request.method == "POST" and "PostTree" in request.form:
@@ -354,7 +373,8 @@ def tree():
         query = "SELECT user_id FROM users WHERE user_id = {}".format(UserID)
         UserCheck = pd.read_sql(query, conn)
         if len(UserCheck) == 0:
-            return jsonify(isError=True, message="Login to update tree")
+            returnable = {"isError": True, "message": "Login to update tree"}
+            return jsonify(returnable)
         query = "SELECT InventoryID FROM trees_inventory WHERE InventoryID={}".format(
             InventoryID
         )
@@ -410,9 +430,11 @@ def tree():
             cur.close()
             conn.commit()
             conn.close()
-            return jsonify(isError=False, message="Tree successfully updated")
+            returnable = {"isError": False, "message": "Tree successfully updated"}
+            return returnable
         else:
-            return jsonify(isError=True, message="Tree must be created")
+            returnable = {"isError": True, "message": "Tree must be created"}
+            return jsonify(returnable)
 
     # GetTreeList
     if request.method == "GET" and "GetTreeList" in request.form:
@@ -421,9 +443,11 @@ def tree():
         TreeList = pd.read_sql(query, conn)
         TreeList = TreeList.values
         if len(TreeList) == 0:
-            return jsonify(isError=False, message="No unique tree common names")
+            returnable = {"isError": False, "message": "No unique tree common names"}
+            return jsonify(returnable)
         else:
-            return jsonify(isError=False, TreeList=TreeList)
+            returnable = {"isError": False, "TreeList": TreeList}
+            return jsonify(returnable)
 
     # GetTree
     if request.method == "GET" and "GetTree" in request.form:
@@ -435,8 +459,10 @@ def tree():
         TreeRecord = pd.read_sql(query, conn)
         TreeRecord = TreeRecord.values
         if len(TreeRecord) == 0:
-            return jsonify(isError=True, message="Tree does not exist")
-        return jsonify(isError=False, TreeRecord=TreeRecord)
+            returnable = {"isError": True, "message": "Tree does not exist"}
+            return jsonify(returnable)
+        returnable = {"isError": False, "TreeRecord": TreeRecord}
+        return jsonify(returnable)
 
     # GetTreeHistory
     if request.method == "GET" and "GetTreeHistory" in request.form:
@@ -452,36 +478,24 @@ def tree():
         else:
             TreeHistory = TreeHistory.sort_values("tree_history_action_date")
             TreeHistory = TreeHistory.values
-            return jsonify(isError=False, TreeHistory=TreeHistory)
+            returnable = {"isError": True, "TreeHistory": TreeHistory}
+            return json.dumps(returnable)
 
-    # Make query out of this data and query the trees table in 100K database
-    # return the data from the query as data
-    # requestType = request.args.get('request')
-    print("GetMap Before", "request.headers", request.headers)
-    print("GetMap Before", "request.__dict__", request.__dict__)
-    print(
-        "GetMap Before",
-        "request.values",
-        request.values,
-        request.args.get("requestType"),
-    )
-
-    # print("GetMap Before", "request.json", request.json)
-    # print("GetMap Before", "request.get_json()", request.get_json())
     if request.method == "GET" and "GetMap" in request.args.get("requestType"):
         # TODO: Get that lat/long info from this request
         query = """SELECT * FROM trees_inventory"""
         TreeMap = pd.read_sql(query, conn)
         if len(TreeMap) == 0:
-            return jsonify(isError=False, message="No trees")
+            returnable = {"isError": True, "message": "No Trees"}
+            return json.dumps(returnable)
         else:
-            TreeMap = TreeMap.to_json()
-            return TreeMap
+            returnable = {"isError": False, "TreeMap": TreeMap}
+            return jsonify(returnable)
     else:
         # Return empty response body and status code.
-        return "", 400
+        returnable = {"isError": True, "statusCode": 400}
+        return jsonify(returnable)
     # Return empty body (Flask will default to 200 status code)
-    return ""
 
 
 if __name__ == "__main__":
