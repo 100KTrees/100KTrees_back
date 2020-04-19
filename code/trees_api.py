@@ -489,7 +489,7 @@ def tree():
         AND Latitude <= {1}
         AND Longitude >= {2}
         AND Longitude <= {3}""".format(
-            sw[0], ne[0], sw[1], ne[1]
+            sw['lat'], ne['lat'], sw['lng'], ne['lng']
         )
         TreeMap = pd.read_sql(query, conn)
         if len(TreeMap) == 0:
