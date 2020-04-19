@@ -486,9 +486,12 @@ def tree():
         mapBounds = request.args.get("mapBounds")
         ne = mapBounds[0]
         sw = mapBounds[1]
-        ne[0], sq[0]
-        query = """
-        SELECT * FROM trees_inventory WHERE Latitude >= {} AND Latitude <= {} AND Longitude >= {} AND Longitude <= {}"""
+        query = f"""
+        SELECT * FROM trees_inventory WHERE
+        Latitude >= {ne[0]} AND
+        Latitude <= {sw[0]} AND
+        Longitude >= {ne[1]} AND
+        Longitude <= {sw[1]}"""
         TreeMap = pd.read_sql(query, conn)
         if len(TreeMap) == 0:
             returnable = {"isError": True, "message": "No Trees"}
