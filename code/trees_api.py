@@ -484,14 +484,14 @@ def tree():
     if request.method == "GET" and "GetMap" in request.args.get("requestType"):
         # TODO: Get that lat/long info from this request
         mapBounds = request.args.get("mapBounds")
-        ne = mapBounds[0]
-        sw = mapBounds[1]
+        sw = mapBounds[0]
+        ne = mapBounds[1]
         query = f"""
         SELECT * FROM trees_inventory WHERE
-        Latitude >= {ne[0]} AND
-        Latitude <= {sw[0]} AND
-        Longitude >= {ne[1]} AND
-        Longitude <= {sw[1]}"""
+        Latitude >= {sw[0]} AND
+        Latitude <= {ne[0]} AND
+        Longitude >= {sw[1]} AND
+        Longitude <= {ne[1]}"""
         TreeMap = pd.read_sql(query, conn)
         if len(TreeMap) == 0:
             returnable = {"isError": True, "message": "No Trees"}
