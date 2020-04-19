@@ -481,7 +481,12 @@ def tree():
             returnable = {"isError": True, "TreeHistory": TreeHistory}
             return json.dumps(returnable)
 
+    print(request)
+    print(request.values)
+    print(request.args)
+
     if request.method == "GET" and "GetMap" in request.args.get("requestType"):
+
         sw = request.args.get("sw")
         ne = request.args.get("ne")
         query = """SELECT * FROM trees_inventory
@@ -489,7 +494,7 @@ def tree():
         AND Latitude <= {1}
         AND Longitude >= {2}
         AND Longitude <= {3}""".format(
-            sw['lat'], ne['lat'], sw['lng'], ne['lng']
+            sw["lat"], ne["lat"], sw["lng"], ne["lng"]
         )
         TreeMap = pd.read_sql(query, conn)
         if len(TreeMap) == 0:
