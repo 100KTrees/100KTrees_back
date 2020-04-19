@@ -482,12 +482,8 @@ def tree():
             return json.dumps(returnable)
 
     if request.method == "GET" and "GetMap" in request.args.get("requestType"):
-        # TODO: Get that lat/long info from this request
-        mapBounds = request.args.get("mapBounds")
-        sw = mapBounds[0]
-        ne = mapBounds[1]
-        print(sw)
-        print(ne)
+        sw = request.args.get("sw")
+        ne = request.args.get("ne")
         query = """SELECT * FROM trees_inventory
         WHERE Latitude >= {0}
         AND Latitude <= {1}
@@ -495,7 +491,6 @@ def tree():
         AND Longitude <= {3}""".format(
             sw[0], ne[0], sw[1], ne[1]
         )
-        print(query)
         TreeMap = pd.read_sql(query, conn)
         if len(TreeMap) == 0:
             returnable = {"isError": True, "message": "No Trees"}
@@ -504,10 +499,8 @@ def tree():
             returnable = {"isError": False, "TreeMap": TreeMap.values}
             return jsonify(returnable)
     else:
-        # Return empty response body and status code.
         returnable = {"isError": True, "statusCode": 400}
         return jsonify(returnable)
-    # Return empty body (Flask will default to 200 status code)
 
 
 if __name__ == "__main__":
