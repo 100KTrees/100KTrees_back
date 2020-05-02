@@ -480,28 +480,75 @@ def tree():
             TreeHistory = TreeHistory.values
             returnable = {"isError": True, "TreeHistory": TreeHistory}
             return json.dumps(returnable)
+   # Make query out of this data and query the trees table in 100K database
+    # return the data from the query as data
+    # requestType = request.args.get('request')
+    # print("GetMap Before", "request", request)
+    # print("GetMap Before", "request.headers", request.headers)
+    # print("GetMap Before", "request.__dict__", request.__dict__)
+    # print("GetMap Before", "request.values", request.values, request.args.get("requestType"))
 
+    # print("GetMap Before", "request.json", request.json)
+    # print("GetMap Before", "request.get_json()", request.get_json())
     if request.method == "GET" and "GetMap" in request.args.get("requestType"):
-        sw = request.args.get("sw")
-        ne = request.args.get("ne")
-        query = """SELECT * FROM trees_inventory
-        WHERE Latitude >= {0}
-        AND Latitude <= {1}
-        AND Longitude >= {2}
-        AND Longitude <= {3}""".format(
-            sw['lat'], ne['lat'], sw['lng'], ne['lng']
-        )
+        # logging.info(request.form)
+        print("GetMap", request.args.get("requestType"))
+        # TODO: Figure out the right number here instead of "5"
+        # Longitude = request.form["Longitude"]
+        # Latitude = request.form["Latitude"]
+        # TODO: Figure out the right number here instead of "5"
+        # BottomLong = Longitude - 5
+        # TopLong = Longitude + 5
+        # LeftLatitude = Latitude - 5
+        # RightLatitude = Latitude + 5
+        # query = f"""SELECT * FROM trees_inventory
+        #         WHERE Latitude < {TopLong} AND
+        #         Latitude > {BottomLong} AND
+        #         Longitude < {RightLatitude} AND
+        #         Longitude > {LeftLatitude}"""
+
+        query = f"""SELECT * FROM trees_inventory"""
+
         TreeMap = pd.read_sql(query, conn)
+        print("TreeMap", TreeMap.loc[0], "TreeMap")
+        # print("TreeMap Values", TreeMap.values)
         if len(TreeMap) == 0:
-            returnable = {"isError": True, "message": "No Trees"}
-            return json.dumps(returnable)
+            return jsonify(isError=False, message="No trees")
         else:
-            returnable = {"isError": False, "TreeMap": TreeMap.values}
-            return jsonify(returnable)
+            # TreeMap = TreeMap.values
+            TreeMapJSON = TreeMap.loc[0].to_json()
+            # TreeMap = jsonify(TreeMap)
+            print("TreeMapJSON", TreeMapJSON)
+
+            return TreeMapJSON
+            # return jsonify(TreeMap)
     else:
-        returnable = {"isError": True, "statusCode": 400}
-        return jsonify(returnable)
+        # Return empty response body and status code.
+        return '', 400
+        # Return empty body (Flask will default to 200 status code)
+        return ''
+
+    # if request.method == "GET" and "GetMap" in request.args.get("requestType"):
+    #     sw = request.args.get("sw")
+    #     ne = request.args.get("ne")
+    #     query = """SELECT * FROM trees_inventory
+    #     WHERE Latitude >= {0}
+    #     AND Latitude <= {1}
+    #     AND Longitude >= {2}
+    #     AND Longitude <= {3}""".format(
+    #         sw['lat'], ne['lat'], sw['lng'], ne['lng']
+    #     )
+    #     TreeMap = pd.read_sql(query, conn)
+    #     if len(TreeMap) == 0:
+    #         returnable = {"isError": True, "message": "No Trees"}
+    #         return json.dumps(returnable)
+    #     else:
+    #         returnable = {"isError": False, "TreeMap": TreeMap.values}
+    #         return jsonify(returnable)
+    # else:
+    #     returnable = {"isError": True, "statusCode": 400}
+    #     return jsonify(returnable)
 
 
 if __name__ == "__main__":
-    app.run(port=30000, debug=True)
+    app.run(port=3000, debug=True)
