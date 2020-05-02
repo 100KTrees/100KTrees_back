@@ -2,9 +2,13 @@ import psycopg2 as ps
 import pandas as pd
 import datetime
 import json
+from flask_cors import CORS #TODO RESEARCH this localhost only?
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
+#TODO MAKE FEATUREFLAGS to turn this on and off 
+# localhost only right now?
+CORS(app)
 
 
 def load_configs():
@@ -507,19 +511,22 @@ def tree():
         #         Longitude < {RightLatitude} AND
         #         Longitude > {LeftLatitude}"""
 
-        query = f"""SELECT * FROM trees_inventory"""
+        query = f"""SELECT * FROM trees_inventory WHERE longitude IS NOT NULL;"""
 
         TreeMap = pd.read_sql(query, conn)
-        print("TreeMap", TreeMap.loc[0], "TreeMap")
+        # print("TreeMap", TreeMap, "TreeMap")
         # print("TreeMap Values", TreeMap.values)
         if len(TreeMap) == 0:
             return jsonify(isError=False, message="No trees")
         else:
             # TreeMap = TreeMap.values
-            TreeMapJSON = TreeMap.loc[0].to_json()
+            # TreeMapJSON = TreeMap.loc[[20,21]].to_json()
             # TreeMap = jsonify(TreeMap)
+            # print("TreeMapJSON", TreeMapJSON)
+            TreeMapDict = TreeMap.iloc[20:30].to_dict(orient='records')
+            print("TreeMapDict", TreeMapDict)
+            TreeMapJSON = jsonify(TreeMapDict)
             print("TreeMapJSON", TreeMapJSON)
-
             return TreeMapJSON
             # return jsonify(TreeMap)
     else:
